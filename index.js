@@ -20,8 +20,8 @@ app.post('/bfhl', (req, res) => {
 
     if (!data || !Array.isArray(data)) return res.status(400).json({ error: "Invalid data" });
 
-    const validEdges = [];
-    const seenEdges = new Set();
+    const filteredLinks = [];
+    const edgehistory = new Set();
     const childrenToParents = {};
     const allNodes = new Set();
 
@@ -33,23 +33,23 @@ app.post('/bfhl', (req, res) => {
             response.invalid_entries.push(trimmed);
         } else {
             const edge = `${match[1]}->${match[2]}`;
-            if (seenEdges.has(edge)) {
+            if (edgehistory.has(edge)) {
                 if (!response.duplicate_edges.includes(edge)) response.duplicate_edges.push(edge); 
             } else {
-                seenEdges.add(edge);
-                validEdges.push({ p: match[1], c: match[2] });
+                edgehistory.add(edge);
+                filteredLinks.push({ p: match[1], c: match[2] });
                 allNodes.add(match[1]);
                 allNodes.add(match[2]);
             }
         }
     });
 
-    const adj = {};
-    validEdges.forEach(({ p, c }) => {
+    const relationmap = {};
+    filteredLinks.forEach(({ p, c }) => {
         if (!childrenToParents[c]) { 
             childrenToParents[c] = p;
-            adj[p] = adj[p] || [];
-            adj[p].push(c);
+            relationmap[p] = relationmap[p] || [];
+            relationmap[p].push(c);
         }
     });
 
@@ -63,7 +63,7 @@ app.post('/bfhl', (req, res) => {
                 const n = queue.shift();
                 if(!group.has(n)) {
                     group.add(n);
-                    validEdges.forEach(e => {
+                    filteredLinks.forEach(e => {
                         if(e.p === n) queue.push(e.c);
                         if(e.c === n) queue.push(e.p);
                     });
@@ -80,7 +80,7 @@ app.post('/bfhl', (req, res) => {
                 if (path.has(curr)) { isCycle = true; return {}; }
                 path.add(curr);
                 const tree = {};
-                (adj[curr] || []).forEach(child => {
+                (relationmap[curr] || []).forEach(child => {
                     tree[child] = build(child, new Set(path));
                 });
                 return tree;
