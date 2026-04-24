@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SRM Full Stack Challenge</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+        pre { background: #eee; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <h1>Hierarchy Processor</h1>
+    <textarea id="nodeInput" placeholder='["A->B", "A->C", "B->D"]'></textarea>
+    <button onclick="sendData()">Submit</button>
+
+    <div id="error" style="color:red; margin-top:10px;"></div>
+    <div id="results"></div>
+
+    <script>
+        async function sendData() {
+            const input = document.getElementById('nodeInput').value;
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('results');
+            errorDiv.innerText = "";
+            
+            try {
+                const response = await fetch('https://bajaj-challenge-1ep0.onrender.com/bfhl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: JSON.parse(input) })
+                });
+                const resData = await response.json();
+                resultDiv.innerHTML = `<h3>Response</h3><pre>${JSON.stringify(resData, null, 2)}</pre>`;
+            } catch (err) {
+                errorDiv.innerText = "API Call Failed. Check console or URL."; // [cite: 123]
+            }
+        }
+    </script>
+</body>
+</html>
